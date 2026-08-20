@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>みんなの占い | Vercel + Supabase ハンズオン</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f9ff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #2563eb;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        header p {
+            margin: 1rem 0 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem 1rem;
+        }
+
+        .card {
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            margin: 0 0 1.25rem;
+            font-size: 1.25rem;
+            color: #1e40af;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: normal;
+            color: #2563eb;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 999px;
+            padding: 0.2rem 0.7rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: bold;
+            color: #334155;
+        }
+
+        .row {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 0;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        button {
+            padding: 0.8rem 1.75rem;
+            font-size: 1rem;
+            font-weight: bold;
+            color: white;
+            background-color: #2563eb;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #1d4ed8;
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .fortune-result {
+            background-color: #f8fafc;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            margin: 2rem 0 0;
+        }
+
+        .name {
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+
+        .fortune-luck {
+            font-size: 2.5rem;
+            color: #2563eb;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .fortune-message {
+            font-size: 1.2rem;
+            margin: 1rem 0 0;
+            color: #333;
+        }
+
+        .list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .list li {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .list li:last-child {
+            border-bottom: none;
+        }
+
+        .list .luck {
+            color: #2563eb;
+            font-weight: bold;
+            font-size: 1.1rem;
+            min-width: 3.5em;
+        }
+
+        .list .who {
+            flex: 1;
+            color: #1e293b;
+            overflow-wrap: anywhere;
+        }
+
+        .list .when {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .list .empty {
+            color: #94a3b8;
+            justify-content: center;
+        }
+
+        .message {
+            margin: 1.5rem 0 0;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        .message code {
+            background: rgba(0, 0, 0, 0.06);
+            padding: 0.1rem 0.35rem;
+            border-radius: 4px;
+        }
+
+        footer {
+            background-color: #1e40af;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>みんなの占い</h1>
+        <p>名前で運勢を占って、結果をみんなで共有しよう！</p>
+    </header>
+
+    <main>
+        <div class="card">
+            <form id="fortune-form">
+                <label for="name">名前を入力してください</label>
+                <div class="row">
+                    <input id="name" type="text" maxlength="20" placeholder="群馬 太郎" autocomplete="off" required>
+                    <button id="submit" type="submit">占う</button>
+                </div>
+            </form>
+
+            <div id="result" class="fortune-result" hidden>
+                <p>こんにちは！私の名前は<span id="result-name" class="name"></span>です。</p>
+                <p id="result-luck" class="fortune-luck"></p>
+                <p id="result-message" class="fortune-message"></p>
+            </div>
+
+            <p id="error" class="message" hidden></p>
+        </div>
+
+        <div class="card">
+            <h2>みんなの結果<span class="badge">Supabase から取得</span></h2>
+            <ul id="list" class="list">
+                <li class="empty">読み込み中...</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer>
+        <p>ハンズオン②：Vercel（配信）+ Supabase（データベース）</p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
